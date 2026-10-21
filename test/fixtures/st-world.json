@@ -1,0 +1,11 @@
+{
+  "entries": {
+    "0": { "uid": 0, "key": ["艾琳", "Eileen"], "keysecondary": [], "comment": "艾琳", "content": "艾琳是酒馆老板。", "constant": false, "selective": true, "selectiveLogic": 0, "order": 100, "position": 0, "disable": false, "depth": 4, "probability": 100, "useProbability": true, "scanDepth": null, "caseSensitive": null, "matchWholeWords": null, "role": null },
+    "1": { "uid": 1, "key": ["灯塔"], "keysecondary": ["夜", "雨"], "comment": "灯塔", "content": "灯塔在北岸。", "constant": false, "selective": true, "selectiveLogic": 3, "order": 300, "position": 0, "disable": false },
+    "2": { "uid": 2, "key": [], "keysecondary": [], "comment": "常驻", "content": "这里终年下雨。现在是{{time}}。", "constant": true, "selective": false, "order": 100, "position": 1, "disable": false },
+    "3": { "uid": 3, "key": ["秘密"], "comment": "停用的", "content": "x", "constant": false, "order": 100, "position": 2, "disable": true },
+    "4": { "uid": 4, "key": ["/港(口|湾)/"], "comment": "正则键", "content": "港口很繁忙。", "constant": false, "order": 100, "position": 4, "depth": 1, "role": 2, "disable": false },
+    "5": { "uid": 5, "key": [], "comment": "向量", "content": "北塔地下室有一扇铁门。", "constant": false, "order": 100, "position": 4, "depth": 0, "role": 0, "disable": false, "vectorized": true, "scanDepth": 3 },
+    "6": { "uid": 6, "key": ["铁门"], "comment": "向量加关键词", "content": "铁门锈住了。", "constant": false, "order": 100, "position": 4, "depth": 0, "role": 0, "disable": false, "vectorized": true }
+  }
+}

@@ -1,0 +1,7 @@
+# 统一换行：仓库里一律 LF；Windows 批处理必须是 CRLF，否则可能执行出错
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.jpg binary
+*.ico binary

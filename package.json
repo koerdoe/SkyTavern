@@ -1,0 +1,42 @@
+{
+  "name": "skytavern",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server/main.ts",
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/server/main.ts",
+    "dev:web": "vite --config web/vite.config.ts",
+    "build": "vite build --config web/vite.config.ts",
+    "typecheck": "tsc -p tsconfig.json && tsc -p web/tsconfig.json",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@fastify/static": "^10.1.5",
+    "@lenml/tokenizer-claude": "^3.7.2",
+    "@lenml/tokenizer-deepseek_v3": "^3.7.2",
+    "@lenml/tokenizer-deepseek_v4": "^3.7.2",
+    "@lenml/tokenizer-gemma3": "^3.7.2",
+    "@lenml/tokenizer-gpt4": "^3.7.2",
+    "@lenml/tokenizer-gpt4o": "^3.7.2",
+    "@lenml/tokenizer-llama3_1": "^3.7.2",
+    "@lenml/tokenizer-mistral_nemo": "^3.7.2",
+    "@lenml/tokenizer-qwen3": "^3.7.2",
+    "@lenml/tokenizers": "^3.7.2",
+    "fastify": "^5.12.5",
+    "marked": "^18.0.3",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.1"
+  }
+}

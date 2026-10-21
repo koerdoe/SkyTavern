@@ -1,0 +1,17 @@
+# 依赖与构建产物
+node_modules/
+web/dist/
+
+# 本地数据与配置（config.json 可能含账号密码）
+data/
+config.json
+
+# 日志与系统文件
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
