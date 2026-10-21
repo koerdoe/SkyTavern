@@ -138,3 +138,28 @@ test('独立的世界书 JSON：位置、次要关键词逻辑、正则关键词
   assert.equal(evalCondition('similar(3)', () => undefined, {}), false); // 没算好时不成立
   assert.throws(() => importWorldbook({ entries: {} }, 'x'), /没有条目/);
 });
+
+test('显示用正则替换出 HTML 时包成 ```html 组件块；请求用的、编辑块不包', () => {
+  const html = '<div style="color:red">$1</div>';
+  const card = {
+    spec: 'chara_card_v2',
+    data: {
+      name: 'HTML Test',
+      extensions: {
+        regex_scripts: [
+          { scriptName: 'Status', findRegex: '/<S>(.*?)<\/S>/g', replaceString: html, placement: [2], markdownOnly: true, promptOnly: false },
+          { scriptName: 'Both', findRegex: '/<S>(.*?)<\/S>/g', replaceString: html, placement: [2], markdownOnly: true, promptOnly: true },
+          { scriptName: 'Fenced', findRegex: '/x/g', replaceString: '```html\n<b>x</b>\n```', placement: [2], markdownOnly: true, promptOnly: false },
+          { scriptName: 'Var', findRegex: '/\[DMG (\d+)\]/g', replaceString: '<var>hp -= $1</var>', placement: [2], markdownOnly: true, promptOnly: false },
+        ],
+      },
+    },
+  };
+  const { character: c, reports } = importCard(card);
+  const sc = new Map(c.scripts.map((s) => [s.name, s.replacement]));
+  assert.equal(sc.get('Status'), '```html\n' + html + '\n```');
+  assert.equal(sc.get('Both'), html);
+  assert.equal(sc.get('Fenced'), '```html\n<b>x</b>\n```');
+  assert.equal(sc.get('Var'), '<var>hp -= $1</var>');
+  assert.ok(reports[0]!.notes.some((n) => n.includes('1 条显示用正则替换出的是 HTML')));
+});

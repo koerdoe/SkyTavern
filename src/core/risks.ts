@@ -30,10 +30,12 @@ export function checkRisks(entries: readonly Entry[]): Risk[] {
     if (p.kind === 'position' && (p.section === 'system' || p.section === 'before')) {
       // 函数写法里只有 pick() 在同一会话里固定，其他（random、roll、get…）都可能变
       const dynamic = [
-        ...placeholderNames(e.content).filter((n) => !STABLE_PLACEHOLDERS.has(n)),
-        ...placeholderCalls(e.content)
-          .filter((f) => f !== 'pick')
-          .map((f) => `${f}(…)`),
+        ...new Set([
+          ...placeholderNames(e.content).filter((n) => !STABLE_PLACEHOLDERS.has(n)),
+          ...placeholderCalls(e.content)
+            .filter((f) => f !== 'pick')
+            .map((f) => `${f}(…)`),
+        ]),
       ];
       if (dynamic.length > 0) {
         risks.push({

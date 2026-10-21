@@ -12,7 +12,10 @@ import { convertMacros, macroReasons, noteMacros, type MacroWhere } from './macr
 import type { ImportReport } from './report.ts';
 import { Tally } from './report.ts';
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+/** 像 HTML 标签（<var> 编辑块不算）。 */
+const HTML_TAG = /<(?!var[\s>])[a-z][\w-]*[\s/>]/i;
+
+const isObj =(v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
 export function convertRegexScripts(raw: unknown, report: ImportReport): ScriptDraft[] {
   if (!Array.isArray(raw)) return [];
@@ -52,6 +55,11 @@ export function convertRegexScripts(raw: unknown, report: ImportReport): ScriptD
     replacement = macro.text;
     reasons.push(...macroReasons(macro, where).map((x) => `替换文字里${x}`));
     noteMacros(report.notes, macro, where);
+    // 酒馆把显示用正则替换出的 HTML 直接渲染；我们只渲染 ```html 代码块（沙箱组件），所以包一层
+    if (target === 'display' && HTML_TAG.test(replacement) && !replacement.includes('```')) {
+      replacement = '```html\n' + replacement + '\n```';
+      tally.add('{n} 条显示用正则替换出的是 HTML，已包成 ```html 代码块，作为组件渲染');
+    }
     if (Array.isArray(r.trimStrings) && r.trimStrings.some((t) => typeof t === 'string' && t !== '')) tally.add('{n} 条正则设了“修剪字符串”，已忽略');
     if (typeof r.substituteRegex === 'number' && r.substituteRegex !== 0) reasons.push('正则里替换宏（substituteRegex）我们不支持');
     if (r.minDepth != null || r.maxDepth != null) tally.add('{n} 条正则限制了作用深度，已忽略（作用于全部消息）');

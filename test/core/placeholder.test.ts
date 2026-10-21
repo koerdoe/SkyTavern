@@ -71,3 +71,10 @@ test('风险检查：正文前用了会变化的占位符', () => {
   assert.equal(risks.length, 1);
   assert.match(risks[0]!.message, /\{\{hp\}\}/);
 });
+
+test('风险检查：同一个占位符用了多次只列一次', () => {
+  const risks = checkRisks([pos('before', '{{roll("1d100")}} {{roll("1d100")}} {{hp}} {{hp}}')]);
+  assert.equal(risks.length, 1);
+  assert.equal(risks[0]!.message.match(/\{\{roll\(…\)\}\}/g)!.length, 1);
+  assert.equal(risks[0]!.message.match(/\{\{hp\}\}/g)!.length, 1);
+});
