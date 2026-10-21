@@ -78,3 +78,9 @@ test('风险检查：同一个占位符用了多次只列一次', () => {
   assert.equal(risks[0]!.message.match(/\{\{roll\(…\)\}\}/g)!.length, 1);
   assert.equal(risks[0]!.message.match(/\{\{hp\}\}/g)!.length, 1);
 });
+
+test('转义：\\{ 输出字面的 {，不当作占位符，也不算缓存风险', () => {
+  const r = assemble({ entries: [pos('before', '格式：\\{{总属性}}=(\\{{基础}}+{{hp}})，集合 \\{a}')], history: [], vars: v });
+  assert.deepEqual(contents(r.messages), ['格式：{{总属性}}=({{基础}}+30)，集合 {a}']);
+  assert.equal(checkRisks([pos('before', '\\{{总属性}} \\{{roll("1d6")}}')]).length, 0);
+});

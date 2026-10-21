@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { evalCondition } from '../../src/core/expr.ts';
 import { detectKind, importCard, importWorldbook } from '../../src/core/import/card.ts';
-import { convertMacros, macroReasons } from '../../src/core/import/macros.ts';
+import { convertMacros, macroReasons, noteMacros } from '../../src/core/import/macros.ts';
 import { cardFromPng, isPng, pngTexts, stripPngTexts } from '../../src/core/import/png.ts';
 import { checkDoc } from '../../src/core/library.ts';
 import { mentionedIn } from '../../src/core/mention.ts';
@@ -28,6 +28,18 @@ test('宏：能对上的换成占位符，其他的列出来', () => {
   const r = convertMacros('<USER> 和 <BOT>，{{User}}，{{time}}{{// 注释}}，{{random::a::b}}，{{getvar::hp}}，{{ persona }}');
   assert.equal(r.text, '{{user}} 和 {{char}}，{{user}}，{{$time}}，{{random("a", "b")}}，{{get("hp")}}，{{ persona }}');
   assert.deepEqual(r.unsupported, ['persona']);
+});
+
+test('宏：不是酒馆宏的 {{…}} 当作普通文字；会求值的地方转义，不停用', () => {
+  const e = convertMacros('{{总属性}}=({{基础属性}}+{{附加属性}})，{{persona}}，{{foo::bar}}');
+  assert.equal(e.text, '\\{{总属性}}=(\\{{基础属性}}+\\{{附加属性}})，{{persona}}，{{foo::bar}}');
+  assert.equal(e.literals, 3);
+  const notes: string[] = [];
+  noteMacros(notes, e, 'entry');
+  assert.ok(notes.some((n) => n.includes('写成 \\{{…}}')));
+  assert.deepEqual(e.unsupported, ['persona', 'foo']);
+  const d = convertMacros('<b>{{总属性}}</b>', 'display');
+  assert.deepEqual([d.text, d.unsupported.length], ['<b>{{总属性}}</b>', 0]);
 });
 
 test('宏转换器：读变量、随机、最近消息、改变量，按所在位置处理', () => {

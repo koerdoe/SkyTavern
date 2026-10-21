@@ -14,6 +14,7 @@
 //                                                 → 编辑块 <var>名 = 值</var> 等，只在开场白和返回时正则里；
 //                                                   addvar / incvar / decvar 写成“存在就累加，不存在就赋值”的分支（和酒馆一致）；
 //                                                   词条里不能改变量（只有聊天记录能改），所在词条停用
+//   {{总属性}} 这类不是酒馆宏、没有参数的         → \{{总属性}}（酒馆原样发送，我们转义成字面文字）
 //
 // 各处能用的不一样（where）：
 //   entry    词条：读变量、随机都可以；改变量不行
@@ -47,7 +48,22 @@ const READ = new Set(['getvar', 'getglobalvar']);
 const WRITE = new Set(['setvar', 'addvar', 'incvar', 'decvar', 'setglobalvar', 'addglobalvar', 'incglobalvar', 'decglobalvar']);
 const RANDOM = new Set(['random', 'pick', 'roll']);
 
-const VAR_NAME = /^[\p{L}_][\p{L}\p{N}_.]*$/u;
+/** 酒馆内置、我们没有对应写法的宏（小写）。不在这里、也没有参数的 {{…}}，酒馆会原样发送。 */
+const ST_MACROS = new Set([
+  'description', 'personality', 'scenario', 'persona', 'mesexamples', 'mesexamplesraw', 'charprompt', 'charinstruction',
+  'charjailbreak', 'chardepthprompt', 'charversion', 'char_version', 'charfirstmessage', 'group', 'groupnotmuted',
+  'charifnotgroup', 'notchar', 'original', 'input', 'model', 'lastswipe', 'firstincludedmessageid', 'firstdisplayedmessageid',
+  'lastmessageid', 'currentswipeid', 'lastgenerationtype', 'idle_duration', 'maxprompt', 'exampleseparator', 'chatseparator',
+  'chatstart', 'systemprompt', 'defaultsystemprompt', 'instructsystem', 'instructsystemprompt', 'instructsystemprefix',
+  'instructsystemsuffix', 'instructinput', 'instructuserprefix', 'instructusersuffix', 'instructoutput', 'instructassistantprefix',
+  'instructassistantsuffix', 'instructfirstoutput', 'instructfirstassistantprefix', 'instructlastoutput',
+  'instructlastassistantprefix', 'instructseparator', 'instructsysteminstructionprefix', 'instructstop', 'instructuserfiller',
+  'instructfirstinput', 'instructfirstuserprefix', 'instructlastinput', 'instructlastuserprefix', 'summary', 'authorsnote',
+  'charauthorsnote', 'defaultauthorsnote', 'bias', 'reverse', 'banned', 'outlet', 'timediff', 'datetimeformat', 'time_utc',
+  'hasvar', 'varexists', 'hasglobalvar', 'globalvarexists', 'space', 'if', 'else', 'pipe',
+]);
+
+const VAR_NAME =/^[\p{L}_][\p{L}\p{N}_.]*$/u;
 
 export interface MacroResult {
   text: string;
@@ -61,6 +77,8 @@ export interface MacroResult {
   globals: boolean;
   /** 转成了编辑块。 */
   editBlocks: number;
+  /** 不是酒馆宏的 {{…}}，当作普通文字（会求值的地方转义成 \{{…}}）。 */
+  literals: number;
 }
 
 const q = (s: string) => JSON.stringify(s);
@@ -86,7 +104,7 @@ function valueLiteral(raw: string, where: MacroWhere): string {
 }
 
 export function convertMacros(text: string, where: MacroWhere = 'entry'): MacroResult {
-  const r: MacroResult = { text: '', unsupported: [], writes: [], dynamic: [], globals: false, editBlocks: 0 };
+  const r: MacroResult = { text: '', unsupported: [], writes: [], dynamic: [], globals: false, editBlocks: 0, literals: 0 };
   const note = (list: string[], name: string) => {
     if (!list.includes(name)) list.push(name);
   };
@@ -156,6 +174,12 @@ export function convertMacros(text: string, where: MacroWhere = 'entry'): MacroR
       return `<var>\n${line}\n</var>`;
     }
 
+    // 不是酒馆的宏（作者自己写的 {{总属性}} 这类格式说明）：酒馆原样发送。
+    // 会求值的地方写成 \{{…}} 转义；返回时、显示用的正则不求值，原样保留
+    if (!ST_MACROS.has(name) && !/[:{}()]/.test(body)) {
+      r.literals++;
+      return live ? '\\' + whole : whole;
+    }
     return unsupported();
   });
   r.text = out;
@@ -189,6 +213,7 @@ export function noteMacros(notes: string[], m: MacroResult, where: MacroWhere): 
   const add = (t: string) => {
     if (!notes.includes(t)) notes.push(t);
   };
+  if (m.literals && (where === 'entry' || where === 'greeting' || where === 'request')) add('不是酒馆宏的 {{…}}（例如作者写的格式说明）当作普通文字，写成 \\{{…}}，发送时原样是 {{…}}');
   if (m.globals) add('酒馆的全局变量（getglobalvar、setglobalvar 等）当作会话变量处理，不再跨聊天共享');
   if (m.editBlocks && where === 'greeting') add('开场白里改变量的宏（setvar 等）转成了编辑块：新会话开始时，成为第一条消息上的变量操作');
   if (m.editBlocks && where === 'receive') add('返回时正则里改变量的宏（setvar 等）转成了编辑块：回复收下时变成那一层的变量操作');
@@ -196,4 +221,4 @@ export function noteMacros(notes: string[], m: MacroResult, where: MacroWhere): 
 }
 
 /** 兼容旧调用：只有不支持的宏。 */
-export const macroReason = (names: readonly string[]): string => macroReasons({ text: '', unsupported: [...names], writes: [], dynamic: [], globals: false, editBlocks: 0 }, 'entry')[0]!;
+export const macroReason = (names: readonly string[]): string => macroReasons({ text: '', unsupported: [...names], writes: [], dynamic: [], globals: false, editBlocks: 0, literals: 0 }, 'entry')[0]!;
