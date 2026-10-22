@@ -1597,7 +1597,12 @@ button.chip:hover {
 /* 头像 */
 .avatar-img {
   object-fit: cover;
+  object-position: center top;
   background: var(--surface-2);
+}
+.avatar-portrait {
+  object-fit: contain;
+  object-position: center;
 }
 .avatar-editor {
   display: grid;
@@ -1668,6 +1673,7 @@ button.chip:hover {
   height: 22px;
   border-radius: 6px;
   object-fit: cover;
+  object-position: center top;
   flex: none;
 }
 .topbar-title .avatar {

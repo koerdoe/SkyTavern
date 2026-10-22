@@ -39,7 +39,7 @@ export function AvatarEditor({ id, name, version }: { id: string; name: string; 
   return (
     <div className="avatar-editor">
       <button className="avatar-pick" title="点击更换头像（PNG、JPEG、WebP、GIF）" disabled={busy} onClick={() => input.current?.click()}>
-        <Avatar name={name} size={64} src={avatarUrl(id, version)} />
+        <Avatar name={name} size={80} src={avatarUrl(id, version)} portrait />
         <span className="avatar-pick-hint">
           <Icon name="edit" size={12} />
         </span>

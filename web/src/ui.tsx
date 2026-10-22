@@ -102,8 +102,11 @@ const AVATAR_COLORS = ['#c0703c', '#3f7fc4', '#4f9a6b', '#9a5bb8', '#c2504e', '#
 export const avatarUrl = (characterId: string, version: string | null | undefined): string | null =>
   version ? `/api/library/character/${encodeURIComponent(characterId)}/avatar?v=${encodeURIComponent(version)}` : null;
 
-export function Avatar({ name, size = 32, src }: { name: string; size?: number; src?: string | null }) {
-  if (src) return <img className="avatar avatar-img" src={src} alt="" style={{ width: size, height: size }} loading="lazy" />;
+/** portrait：按角色卡常见的 2:3 竖图显示完整图片（详情里用）；默认是方形，裁掉上下、保留上部（人脸通常在上面）。 */
+export function Avatar({ name, size = 32, src, portrait = false }: { name: string; size?: number; src?: string | null; portrait?: boolean }) {
+  if (src) {
+    return <img className={`avatar avatar-img${portrait ? ' avatar-portrait' : ''}`} src={src} alt="" style={{ width: size, height: portrait ? size * 1.5 : size }} loading="lazy" />;
+  }
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
   return (
